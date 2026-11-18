@@ -2,7 +2,7 @@
 title: 日常档案
 date: 2025-08-01
 description: 以时间与观察为线索的视觉叙事实验。
-cover: /project-02.svg
+cover: ./project-02.svg
 year: '2025'
 kind: Visual study
 color: '#d8c6ad'

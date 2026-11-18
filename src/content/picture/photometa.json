@@ -1,6 +1,6 @@
 [
-  { "src": "/photo-01.svg", "alt": "示例影像：窗边的光", "caption": "01 / Window light", "type": "image" },
-  { "src": "/photo-02.svg", "alt": "示例影像：傍晚的街道", "caption": "02 / Blue hour", "type": "image" },
-  { "src": "/photo-03.svg", "alt": "示例影像：静物与叶片", "caption": "03 / Still life", "type": "image" },
-  { "src": "/photo-04.svg", "alt": "示例影像：远处的山", "caption": "04 / Elsewhere", "type": "image" }
+  { "src": "./photo-01.svg", "alt": "示例影像：窗边的光", "caption": "01 / Window light", "type": "image" },
+  { "src": "./photo-02.svg", "alt": "示例影像：傍晚的街道", "caption": "02 / Blue hour", "type": "image" },
+  { "src": "./photo-03.svg", "alt": "示例影像：静物与叶片", "caption": "03 / Still life", "type": "image" },
+  { "src": "./photo-04.svg", "alt": "示例影像：远处的山", "caption": "04 / Elsewhere", "type": "image" }
 ]

@@ -2,7 +2,7 @@
 title: 一座小花园
 date: 2024-06-01
 description: 关于空间、秩序与自由生长的概念练习。
-cover: /project-03.svg
+cover: ./project-03.svg
 year: '2024'
 kind: Spatial concept
 color: '#bacbb3'

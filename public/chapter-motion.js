@@ -4,8 +4,7 @@ function initChapters() {
   const chapters = Array.from(document.querySelectorAll('[data-chapter]'), section => ({
     section,
     heading: section.querySelector('h2'),
-    media: section.querySelector('.work-marquee, .photo-stage, .notes-grid, .closing-panel'),
-    notes: [...section.querySelectorAll('.note-card')],
+    media: section.querySelector('.work-marquee, .photo-stage, .notes-gallery, .closing-panel'),
   }));
   let frame = 0;
 
@@ -20,22 +19,18 @@ function initChapters() {
     const reduced = motionPreference.matches;
 
     // Read the untransformed section anchors before writing animated styles.
-    const positions = chapters.map(({ heading, media, notes }) => ({
+    const positions = chapters.map(({ heading, media }) => ({
       title: heading.getBoundingClientRect().top,
       media: (media.closest('.closing-layout') || media).getBoundingClientRect().top,
-      notes: notes.map(note => note.getBoundingClientRect().top),
     }));
 
-    chapters.forEach(({ section, notes }, index) => {
+    chapters.forEach(({ section }, index) => {
       const position = positions[index];
       const progress = (top, start, end) => reduced ? 1 : between(top, start, end, height);
       section.style.setProperty('--title-open', progress(position.title, .94, .66));
       section.style.setProperty('--line-open', progress(position.title, .87, .56));
       section.style.setProperty('--copy-open', progress(position.title, .80, .52));
       section.style.setProperty('--media-open', progress(position.media, .94, .44));
-      notes.forEach((note, i) => {
-        note.style.setProperty('--note-open', progress(position.notes[i], .93, .54));
-      });
     });
   }
 

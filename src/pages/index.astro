@@ -1,14 +1,27 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import { siteConfig as site } from '../siteconfig';
 import Icon from '../components/Icon.astro';
 import { sitePath } from '../sitepath';
 import photos from '../content/picture/photometa.json';
+const pictureAssets = import.meta.glob('../content/picture/**/*.{svg,png,jpg,jpeg,webp,avif,gif,mp4,webm,mov}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+function pictureSource(source: string): string {
+  if (/^(https?:|data:|blob:)/.test(source)) return source;
+  if (source.startsWith('/')) return sitePath(source);
+  const key = `../content/picture/${source.replace(/^\.\//, '')}`;
+  const url = pictureAssets[key];
+  if (!url) throw new Error(`Missing picture asset: ${key}`);
+  return url;
+}
 const projects = (await getCollection('projects')).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
 const posts = (await getCollection('posts')).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
 const projectCards = projects;
 const noteCards = posts;
-const noteFrames = ['stamp', 'camera', 'polaroid', 'ticket', 'folio'];
 ---
 <html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="theme-color" content="#edf1e9"/><meta name="description" content={`${site.displayName} 的个人博客：经历、影像与随想。`}/><title>{site.displayName} — Personal archive</title><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet"/><link rel="stylesheet" href={sitePath('/style.css')}/><link rel="stylesheet" href={sitePath('/chapter-motion.css')}/><script is:inline>
   if ((!location.hash || location.hash === '#top') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -39,15 +52,22 @@ const noteFrames = ['stamp', 'camera', 'polaroid', 'ticket', 'folio'];
 <section class="section work-section" data-chapter="work" id="work"><header class="section-heading chapter-heading">
       <p class="section-number">01 / THE JOURNEY</p>
       <h2><span class="chapter-line"><span>做过的事，</span></span><span class="chapter-line"><em>留下的痕迹。</em></span></h2>
-    </header><div class="work-marquee" id="work-marquee" aria-label="横向播放的项目与经历"><div class="marquee-viewport" id="marquee-viewport"><div class="marquee-track" id="marquee-track">{[0,1].map(copy=><div class="marquee-set" aria-hidden={copy===1 ? 'true' : undefined}>{projectCards.map((project,i)=><a class="marquee-card" href={sitePath(`/project/${project.id}/`)} tabindex={copy===1 ? -1 : undefined} style={`--card-color:${project.data.color}`}><div class="marquee-image"><img src={sitePath(project.data.cover)} alt={project.data.title} draggable="false" loading="lazy"/><span class="marquee-open">↗</span></div><div class="marquee-caption"><span>0{i+1} / {project.data.kind} / {project.data.year}</span><h3>{project.data.title}</h3><p>{project.data.description}</p></div></a>)}</div>)}</div></div><button class="marquee-nudge marquee-nudge-prev" id="marquee-prev" type="button" aria-label="向左移动项目">←</button><button class="marquee-nudge marquee-nudge-next" id="marquee-next" type="button" aria-label="向右移动项目">→</button></div></section>
+    </header><div class="work-marquee" id="work-marquee" aria-label="横向播放的项目与经历"><div class="marquee-viewport" id="marquee-viewport"><div class="marquee-track" id="marquee-track">{[0,1].map(copy=><div class="marquee-set" aria-hidden={copy===1 ? 'true' : undefined}>{projectCards.map((project,i)=><a class="marquee-card" href={sitePath(`/project/${project.id}/`)} tabindex={copy===1 ? -1 : undefined} style={`--card-color:${project.data.color}`}><div class="marquee-image"><Image src={project.data.cover} alt={project.data.title} draggable="false" loading="lazy"/><span class="marquee-open">↗</span></div><div class="marquee-caption"><span>0{i+1} / {project.data.kind} / {project.data.year}</span><h3>{project.data.title}</h3><p>{project.data.description}</p></div></a>)}</div>)}</div></div><button class="marquee-nudge marquee-nudge-prev" id="marquee-prev" type="button" aria-label="向左移动项目">←</button><button class="marquee-nudge marquee-nudge-next" id="marquee-next" type="button" aria-label="向右移动项目">→</button></div></section>
 <section class="section gallery-section" data-chapter="gallery" id="gallery"><header class="section-heading chapter-heading">
       <p class="section-number">02 / THE IN-BETWEEN</p>
       <h2><span class="chapter-line"><span>生活，</span></span><span class="chapter-line"><em>在镜头之外。</em></span></h2>
-    </header><div class="photo-stage" id="photo-stage"><div class="photo-stack">{photos.map((photo,i)=><button class="photo-card" style={`--offset:${i}`} data-index={i} aria-label={`查看${photo.alt}`}>{photo.type === "video" ? <video src={sitePath(photo.src)} aria-label={photo.alt} playsinline muted loop preload="metadata"></video> : <img src={sitePath(photo.src)} alt={photo.alt} loading="lazy"/>}<span>{photo.caption}</span></button>)}</div><div class="gallery-side"><span class="gallery-count"><b id="photo-current">01</b> / {String(photos.length).padStart(2,'0')}</span><p>一页一页翻过日常。<br/>点击照片，或使用两侧按钮。</p><div class="gallery-controls"><button id="photo-prev" aria-label="上一张照片">←</button><button id="photo-next" aria-label="下一张照片">→</button></div></div></div></section>
+    </header><div class="photo-stage" id="photo-stage"><div class="photo-stack">{photos.map((photo,i)=><button class="photo-card" style={`--offset:${i}`} data-index={i} aria-label={`查看${photo.alt}`}>{photo.type === "video" ? <video src={pictureSource(photo.src)} aria-label={photo.alt} playsinline muted loop preload="metadata"></video> : <img src={pictureSource(photo.src)} alt={photo.alt} loading="lazy"/>}<span>{photo.caption}</span></button>)}</div><div class="gallery-side"><span class="gallery-count"><b id="photo-current">01</b> / {String(photos.length).padStart(2,'0')}</span><p>一页一页翻过日常。<br/>点击照片，或使用两侧按钮。</p><div class="gallery-controls"><button id="photo-prev" aria-label="上一张照片">←</button><button id="photo-next" aria-label="下一张照片">→</button></div></div></div></section>
 <section class="section notes-section" data-chapter="notes" id="notes"><header class="section-heading chapter-heading">
       <p class="section-number">03 / MARGIN NOTES</p>
       <h2><span class="chapter-line"><span>偶尔，</span></span><span class="chapter-line"><em>把思绪写下来。</em></span></h2>
-    </header><div class="notes-grid">{noteCards.map(post=><a class={`note-card in-view frame-${noteFrames.indexOf(post.data.frame)}`} href={sitePath(`/post/${post.id}/`)}><div class="note-art"><img src={sitePath(post.data.cover)} alt={post.data.title} loading="lazy"/></div><div class="note-meta"><span>{post.data.label || 'FIELD NOTE'} / {post.data.date.getFullYear()}</span><span>↗</span></div><h3>{post.data.title}</h3><p>{post.data.description}</p></a>)}</div></section>
+    </header><div class="notes-gallery" id="notes-gallery" role="region" aria-roledescription="轮播" aria-label="随想文章" tabindex="0">
+      <div class="notes-gallery-viewport">
+        {noteCards.map(post => <a class="notes-gallery-card" href={sitePath(`/post/${post.id}/`)} aria-label={`阅读随想：${post.data.title}`}>
+          <span class="notes-gallery-art"><Image src={post.data.cover} alt="" loading="lazy" draggable="false"/></span>
+          <span class="notes-gallery-label"><strong>{post.data.title}</strong><small>{post.data.label || 'FIELD NOTE'} / {post.data.date.getFullYear()}</small><span class="notes-gallery-description">{post.data.description}</span></span>
+        </a>)}
+      </div>
+    </div></section>
 <section class="closing" id="about" data-chapter="about">
   <div class="closing-panel">
     <p class="closing-kicker">04 / BEYOND THE PAGE</p>
@@ -73,4 +93,4 @@ const noteFrames = ['stamp', 'camera', 'polaroid', 'ticket', 'folio'];
   <div class="gallery-lightbox-backdrop" data-lightbox-close></div>
   <div class="gallery-lightbox-stage"><div class="gallery-lightbox-media" id="lightbox-media"></div><div class="gallery-lightbox-caption"><p id="lightbox-caption"></p><span id="lightbox-count"></span></div></div>
   <div class="gallery-lightbox-controls"><button type="button" id="lightbox-prev" aria-label="上一张">←</button><button type="button" id="lightbox-next" aria-label="下一张">→</button><button type="button" id="lightbox-close" data-lightbox-close aria-label="关闭影像">×</button></div>
-</div><script src={sitePath('/vendor/lenis.min.js')} defer></script><script src={sitePath('/interactions.js')} defer></script><script src={sitePath('/chapter-motion.js')} defer></script></body></html>
+</div><script src={sitePath('/vendor/lenis.min.js')} defer></script><script src={sitePath('/interactions.js')} defer></script><script src={sitePath('/notes-gallery.js')} defer></script><script src={sitePath('/chapter-motion.js')} defer></script></body></html>

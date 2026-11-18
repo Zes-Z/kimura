@@ -2,7 +2,7 @@
 title: 植物的时间
 date: 2024-06-01
 description: 关于缓慢变化的示例随想。
-cover: /photo-03.svg
+cover: ./photo-03.svg
 label: FIELD NOTE 003
 frame: polaroid
 ---

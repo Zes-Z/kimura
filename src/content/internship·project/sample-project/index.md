@@ -2,7 +2,7 @@
 title: 光的练习
 date: 2026-01-01
 description: 一个用于展示项目叙事、过程与成果的示例条目。
-cover: /project-01.svg
+cover: ./project-01.svg
 year: '2026'
 kind: Concept project
 color: '#d8dfd9'

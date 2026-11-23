@@ -2,7 +2,7 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 const shared = z.object({ title: z.string(), date: z.coerce.date(), description: z.string(), label: z.string().optional() });
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/internship·project' }),
+  loader: glob({ pattern: '**/*.md', base: './src/content/project' }),
   schema: ({ image }) => shared.extend({
     cover: image(),
     year: z.string(),

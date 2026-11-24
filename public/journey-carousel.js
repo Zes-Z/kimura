@@ -51,24 +51,13 @@
     lightboxImage?.removeAttribute('src');
     if (lastTrigger?.tabIndex === 0) lastTrigger.focus({ preventScroll: true });
     else viewport.focus({ preventScroll: true });
-    if (!carousel.classList.contains('is-static')) wake();
+    wake();
   });
   lightbox?.addEventListener('keydown', event => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
     showImage(openIndex + (event.key === 'ArrowRight' ? 1 : -1));
   });
-
-  if (reducedMotion.matches || cards.length < 3) {
-    carousel.classList.add('is-static');
-    uniqueCards.forEach(card => {
-      card.removeAttribute('aria-hidden');
-      const tile = card.querySelector('.journey-tile');
-      tile.tabIndex = 0;
-      tile.addEventListener('click', () => openLightbox(Number(card.dataset.index), tile));
-    });
-    return;
-  }
 
   // React Bits uses a chord radius. Solve its chord equation for each pair
   // of unequal-width images so the requested 60px neighbor gap stays even.
@@ -90,6 +79,9 @@
     hover: false,
     drag: false,
     holdUntil: 0,
+    pointer: { inside: false, x: 0, y: 0 },
+    yaw: 0,
+    pitch: 0,
   };
 
   function nearestSlot(angle = state.angle) {
@@ -180,10 +172,6 @@
     const shift = -((minY + maxY) / 2) * fit;
     viewport.style.perspective = perspective + 'px';
     stage.style.transform = 'translate3d(0, ' + shift + 'px, 0) scale(' + fit + ')';
-    camera.style.transform = 'translate3d(0, 0, ' + (-radius) + 'px) rotateX(-5deg)';
-    cards.forEach((card, index) => {
-      card.style.transform = 'rotateY(' + bases[index] + 'deg) translateZ(' + radius + 'px)';
-    });
     carousel.classList.add('is-ready');
     render();
     wake();
@@ -191,8 +179,13 @@
 
   function render() {
     if (!bases.length) return;
+    const stretch = reducedMotion.matches ? 0 : .5;
+    const swell = 1 + stretch * .12 * Math.min(1, Math.abs(state.velocity) / 420);
+    const ringRadius = radius * swell;
+    camera.style.transform = 'translate3d(0, 0, ' + (-ringRadius) + 'px) rotateX(' + (-5 + state.pitch) + 'deg) rotateY(' + state.yaw + 'deg)';
     ring.style.transform = 'rotateY(' + state.angle + 'deg)';
     cards.forEach((card, index) => {
+      card.style.transform = 'rotateY(' + bases[index] + 'deg) translateZ(' + ringRadius + 'px)';
       const facing = Math.cos(wrap(bases[index] + state.angle) * radians);
       const fade = .55 * Math.pow((1 - facing) / 2, 1.25);
       card.style.setProperty('--cc-depth', fade.toFixed(3));
@@ -210,36 +203,46 @@
   }
 
   function advance(dt, now) {
-    if (state.drag) return true;
     const keyboardFocus = viewport.matches(':focus-visible') || !!viewport.querySelector(':focus-visible');
     const paused = state.hover || document.hidden || !!lightbox?.open || keyboardFocus || now < state.holdUntil;
-    const cruise = paused ? 0 : 14 * state.direction;
-    if (state.target !== null) {
-      let remaining = dt;
-      while (remaining > 0) {
-        const h = Math.min(remaining, 1 / 240);
-        const acceleration = 118 * (state.target - state.angle) - 2 * Math.sqrt(118) * state.velocity;
-        state.velocity += acceleration * h;
-        state.angle += state.velocity * h;
-        remaining -= h;
+    const cruise = reducedMotion.matches || paused ? 0 : 14 * state.direction;
+    let busy = state.drag;
+    if (!state.drag) {
+      if (state.target !== null) {
+        let remaining = dt;
+        while (remaining > 0) {
+          const h = Math.min(remaining, 1 / 240);
+          const acceleration = 118 * (state.target - state.angle) - 2 * Math.sqrt(118) * state.velocity;
+          state.velocity += acceleration * h;
+          state.angle += state.velocity * h;
+          remaining -= h;
+        }
+        if (Math.abs(state.target - state.angle) < .004 && Math.abs(state.velocity) < .03) {
+          state.angle = state.target;
+          state.velocity = 0;
+          state.target = null;
+        }
+        busy = true;
+      } else {
+        const tau = .18 + .6 * 1.5;
+        state.velocity += (cruise - state.velocity) * (1 - Math.exp(-dt / tau));
+        state.angle += state.velocity * dt;
+        if (cruise === 0 && Math.abs(state.velocity) < 9) {
+          const nearest = targetFor(nearestSlot());
+          if (Math.abs(nearest - state.angle) > .004) state.target = nearest;
+          else state.velocity = 0;
+        }
+        if (Math.abs(state.angle) > 720 && state.target === null) state.angle = wrap(state.angle);
+        busy = cruise !== 0 || Math.abs(state.velocity) > .01 || state.target !== null;
       }
-      if (Math.abs(state.target - state.angle) < .004 && Math.abs(state.velocity) < .03) {
-        state.angle = state.target;
-        state.velocity = 0;
-        state.target = null;
-      }
-      return true;
     }
-    const tau = .18 + .6 * 1.5;
-    state.velocity += (cruise - state.velocity) * (1 - Math.exp(-dt / tau));
-    state.angle += state.velocity * dt;
-    if (cruise === 0 && Math.abs(state.velocity) < 9) {
-      const nearest = targetFor(nearestSlot());
-      if (Math.abs(nearest - state.angle) > .004) state.target = nearest;
-      else state.velocity = 0;
-    }
-    if (Math.abs(state.angle) > 720 && state.target === null) state.angle = wrap(state.angle);
-    return cruise !== 0 || Math.abs(state.velocity) > .01 || state.target !== null || now < state.holdUntil;
+    const ease = 1 - Math.exp(-dt / .35);
+    const aimYaw = state.pointer.inside && !reducedMotion.matches ? state.pointer.x * .3 * 9 : 0;
+    const aimPitch = state.pointer.inside && !reducedMotion.matches ? -state.pointer.y * .3 * 6 : 0;
+    state.yaw += (aimYaw - state.yaw) * ease;
+    state.pitch += (aimPitch - state.pitch) * ease;
+    if (Math.abs(aimYaw - state.yaw) > .01 || Math.abs(aimPitch - state.pitch) > .01) busy = true;
+    return busy || now < state.holdUntil;
   }
   function frame(now) {
     frameId = 0;
@@ -259,22 +262,35 @@
     event.preventDefault();
     stepBy(event.key === 'ArrowRight' ? 1 : -1);
   });
+  function updatePointer(event) {
+    const rect = viewport.getBoundingClientRect();
+    state.pointer.x = clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+    state.pointer.y = clamp(((event.clientY - rect.top) / rect.height) * 2 - 1, -1, 1);
+  }
   viewport.addEventListener('pointerenter', event => {
     if (event.pointerType !== 'mouse') return;
     state.hover = true;
+    state.pointer.inside = true;
+    updatePointer(event);
+    wake();
+  });
+  viewport.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse') return;
+    state.pointer.inside = true;
+    updatePointer(event);
     wake();
   });
   viewport.addEventListener('pointerleave', event => {
     if (event.pointerType !== 'mouse') return;
     state.hover = false;
+    state.pointer.inside = false;
     wake();
   });
   viewport.addEventListener('focusin', wake);
   viewport.addEventListener('focusout', wake);
   viewport.addEventListener('pointerdown', event => {
     if (event.button !== 0 || press) return;
-    press = { id: event.pointerId, x: event.clientX, y: event.clientY, angle: state.angle, origin: 0, moved: false, samples: [] };
-    state.target = null;
+    press = { id: event.pointerId, x: event.clientX, y: event.clientY, angle: state.angle, origin: 0, moved: false, samples: [{ time: performance.now(), angle: state.angle }] };
   });
   window.addEventListener('pointermove', event => {
     if (!press || press.id !== event.pointerId) return;
@@ -287,8 +303,9 @@
         return;
       }
       press.moved = true;
-      press.origin = delta;
+      press.origin = Math.sign(delta) * 5;
       state.drag = true;
+      state.target = null;
       state.velocity = 0;
       viewport.classList.add('is-dragging');
       try { viewport.setPointerCapture(event.pointerId); } catch {}
@@ -316,10 +333,6 @@
     const velocity = span > .008 ? clamp((last.angle - first.angle) / span, -1400, 1400) : 0;
     state.velocity = velocity;
     if (Math.abs(velocity) > 60) state.direction = Math.sign(velocity);
-    if (state.hover && event.pointerType === 'mouse') {
-      const predicted = state.angle + velocity * (.18 + .6 * 1.5) * .55;
-      state.target = targetFor(nearestSlot(predicted), predicted);
-    }
     wake();
   }
   window.addEventListener('pointerup', releasePointer);
@@ -333,7 +346,7 @@
     }
     const card = tile.closest('.journey-card');
     const index = cards.indexOf(card);
-    if (Math.abs(wrap(bases[index] + state.angle)) > 12) focusSlot(index);
+    if (tile.classList.contains('journey-tile-back') || Math.abs(wrap(bases[index] + state.angle)) > 12) focusSlot(index);
     else openLightbox(Number(card.dataset.index), tile);
   });
   viewport.addEventListener('dragstart', event => event.preventDefault());
@@ -373,8 +386,10 @@
       lastFrame = 0;
     } else wake();
   });
+  reducedMotion.addEventListener('change', wake);
   if ('ResizeObserver' in window) new ResizeObserver(measure).observe(viewport);
   window.addEventListener('resize', measure);
+  carousel.__journeyDebug = { state, advance, render };
   measure();
   wake();
 })();

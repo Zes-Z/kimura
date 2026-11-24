@@ -105,6 +105,8 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+.journey-tile-back { transform: rotateY(180deg); }
+.journey-tile-back .journey-image img { filter: brightness(.6); }
 .journey-image {
   position: relative;
   display: block;
@@ -174,6 +176,8 @@
 }
 .journey-carousel:not(.is-ready) .journey-tile,
 .journey-carousel.is-static .journey-tile { position: relative; left: auto; top: auto; }
+.journey-carousel:not(.is-ready) .journey-tile-back,
+.journey-carousel.is-static .journey-tile-back { display: none; }
 .journey-carousel:not(.is-ready) .journey-card:not([data-copy="0"]),
 .journey-carousel.is-static .journey-card:not([data-copy="0"]) { display: none; }
 

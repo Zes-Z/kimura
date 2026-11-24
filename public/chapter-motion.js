@@ -4,7 +4,7 @@ function initChapters() {
   const chapters = Array.from(document.querySelectorAll('[data-chapter]'), section => ({
     section,
     heading: section.querySelector('h2'),
-    media: section.querySelector('.work-marquee, .photo-stage, .notes-gallery, .closing-panel'),
+    media: section.querySelector('.journey-carousel, .ticket-grid, .closing-panel, .archive-empty'),
   }));
   let frame = 0;
 
@@ -20,8 +20,8 @@ function initChapters() {
 
     // Read the untransformed section anchors before writing animated styles.
     const positions = chapters.map(({ heading, media }) => ({
-      title: heading.getBoundingClientRect().top,
-      media: (media.closest('.closing-layout') || media).getBoundingClientRect().top,
+      title: heading?.getBoundingClientRect().top ?? section.getBoundingClientRect().top,
+      media: media?.getBoundingClientRect().top ?? section.getBoundingClientRect().top,
     }));
 
     chapters.forEach(({ section }, index) => {

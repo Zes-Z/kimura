@@ -11,7 +11,7 @@ type HeroMedia = {
 
 const heroMedia: HeroMedia = {
   type: 'image',
-  src: './photo-04.svg',
+  src: './50f0086ed4e87e1f8f728d5ff4f78f18.jpg',
   alt: '山峦与晨光的示例画面',
   objectPosition: 'center 44%',
 };

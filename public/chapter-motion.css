@@ -198,11 +198,12 @@ html.lenis { scroll-behavior: auto; }
   text-align: center;
 }
 .closing h2 {
-  font-size: clamp(52px, 6vw, 94px);
+  font-size: clamp(26px, 5vw, 76px);
   font-weight: 600;
   line-height: 1.13;
   letter-spacing: -.08em;
 }
+.closing h2 .chapter-line > span { white-space: nowrap; }
 .closing h2 em {
   font-family: 'DM Sans', 'Noto Sans SC', sans-serif;
   font-style: normal;
@@ -329,7 +330,7 @@ html.lenis { scroll-behavior: auto; }
   .closing-panel { min-height: 680px; padding: 28px 18px 23px; border-radius: 30px; }
   .closing-kicker { font-size: 9px; }
   .closing-content { padding: 20px 0 112px; }
-  .closing h2 { font-size: clamp(44px, 11vw, 68px); }
+  .closing h2 { font-size: clamp(26px, 7vw, 42px); }
   .closing-content > p:not(.eyebrow) { font-size: 13px; }
   .closing-actions { flex-direction: column; width: 100%; gap: 9px; }
   .contact-link, .copy-email { width: min(100%, 240px); }

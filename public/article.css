@@ -1,0 +1,18 @@
+/* Reading page type scale. Keep this separate from the homepage styles. */
+.article-shell h1 {
+  font-size: clamp(34px, 5vw, 62px);
+  line-height: 1.15;
+}
+
+.article-description { font-size: 14px; }
+
+.prose {
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.prose h2 { font-size: 22px; }
+
+@media (max-width: 700px) {
+  .article-shell h1 { font-size: clamp(32px, 8vw, 42px); }
+}

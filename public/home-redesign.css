@@ -54,11 +54,12 @@
 /* Circular Carousel's camera / ring / card geometry, with variable-width tiles. */
 .journey-carousel {
   position: relative;
-  --journey-height: clamp(310px, 36vw, 500px);
+  --journey-height: clamp(265px, 30.5vw, 400px);
 }
 .journey-viewport {
   position: relative;
-  width: 100%;
+  width: min(100%, 1080px);
+  margin-inline: auto;
   height: calc(var(--journey-height) + 80px);
   overflow: hidden;
   outline: none;
@@ -380,7 +381,7 @@ html.is-lightbox-open { overflow: hidden; }
   .notes-section { padding: 88px 5vw 125px; }
   .work-section .chapter-heading,
   .notes-section .chapter-heading { margin-bottom: 35px; }
-  .journey-carousel { --journey-height: min(72vw, 330px); }
+  .journey-carousel { --journey-height: min(68vw, 300px); }
   .journey-viewport { height: calc(var(--journey-height) + 55px); }
   .ticket-grid { display: flex; flex-direction: column; align-items: center; gap: 47px; }
   .tear-ticket:nth-child(n) { --stagger: 0px; }

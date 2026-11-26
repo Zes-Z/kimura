@@ -205,7 +205,7 @@
   function advance(dt, now) {
     const keyboardFocus = viewport.matches(':focus-visible') || !!viewport.querySelector(':focus-visible');
     const paused = state.hover || document.hidden || !!lightbox?.open || keyboardFocus || now < state.holdUntil;
-    const cruise = reducedMotion.matches || paused ? 0 : 14 * state.direction;
+    const cruise = reducedMotion.matches || paused ? 0 : 7 * state.direction;
     let busy = state.drag;
     if (!state.drag) {
       if (state.target !== null) {
